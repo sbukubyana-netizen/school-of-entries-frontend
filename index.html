@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>School of Entries 🎯 | AI Market Predictions</title>
+  <style>
+    body {
+      background: #f2f5fa;
+      font-family: "Poppins", sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #003366;
+      overflow-x: hidden;
+    }
+    header {
+      background: #003366;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      font-size: 1.4em;
+      letter-spacing: 1px;
+    }
+    .chart-wrapper {
+      position: relative;
+      width: 100%;
+      height: 600px;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 20px;
+    }
+    iframe {
+      border: none;
+    }
+    #prediction-box {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 51, 102, 0.9);
+      color: white;
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.4em;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+    }
+    section {
+      text-align: center;
+      margin-top: 40px;
+      padding: 20px;
+    }
+    .symbol-selector {
+      margin-top: 10px;
+    }
+    select {
+      padding: 8px;
+      font-size: 1em;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+  <header>🎯 School of Entries — Live AI Market Predictions</header>
+
+  <div class="symbol-selector" style="text-align:center;margin-top:20px;">
+    <label for="symbol">Select Market:</label>
+    <select id="symbol" onchange="updateChart()">
+      <option value="V75">V75 Index</option>
+      <option value="V100">V100 Index</option>
+      <option value="Boom1000">Boom 1000</option>
+      <option value="Crash1000">Crash 1000</option>
+      <option value="Crash500">Crash 500</option>
+      <option value="Boom500">Boom 500</option>
+    </select>
+  </div>
+
+  <div class="chart-wrapper">
+    <iframe id="derivChart" src="https://charts.deriv.com/deriv?symbol=V75" width="100%" height="600"></iframe>
+    <div id="prediction-box">Connecting to AI...</div>
+  </div>
+
+  <section>
+    <h1>School of Entries</h1>
+    <p>Founded by <strong>Sibusiso Kubyana</strong></p>
+    <p>Empowering traders through AI-driven smart structure and market flow prediction.</p>
+    <p><strong>Powered by School of Entries AI Engine</strong></p>
+  </section>
+
+  <script>
+    const backendURL = "https://ai-trading-backend-bdxb.onrender.com"; // replace if your backend link differs
+
+    async function getPrediction(symbol = "V75") {
+      try {
+        const res = await fetch(`${backendURL}/predict?symbol=${symbol}`);
+        const data = await res.json();
+        if (data.error) {
+          document.getElementById("prediction-box").innerHTML = "⚠️ " + data.error;
+          return;
+        }
+        document.getElementById("prediction-box").innerHTML = `
+          <b>${data.symbol}</b><br>
+          Bias: ${data.bias}<br>
+          Confidence: ${(data.confidence * 100).toFixed(0)}%<br>
+          TP1: ${data.targets.TP1}<br>
+          TP2: ${data.targets.TP2}
+        `;
+      } catch (err) {
+        document.getElementById("prediction-box").innerHTML = "❌ Connection error (backend offline)";
+      }
+    }
+
+    function updateChart() {
+      const symbol = document.getElementById("symbol").value;
+      document.getElementById("derivChart").src = `https://charts.deriv.com/deriv?symbol=${symbol}`;
+      getPrediction(symbol);
+    }
+
+    setInterval(() => {
+      const symbol = document.getElementById("symbol").value;
+      getPrediction(symbol);
+    }, 10000);
+
+    // Initial load
+    getPrediction("V75");
+  </script>
+</body>
+</html>
