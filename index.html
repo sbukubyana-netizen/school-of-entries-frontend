@@ -4,127 +4,142 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>School of Entries 🎯 | AI Market Predictions</title>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <style>
-    body {
-      background: #f2f5fa;
-      font-family: "Poppins", sans-serif;
-      margin: 0;
-      padding: 0;
-      color: #003366;
-      overflow-x: hidden;
-    }
-    header {
-      background: #003366;
-      color: white;
-      text-align: center;
-      padding: 20px;
-      font-size: 1.4em;
-      letter-spacing: 1px;
-    }
-    .chart-wrapper {
-      position: relative;
-      width: 100%;
-      height: 600px;
-      border-radius: 12px;
-      overflow: hidden;
-      margin-top: 20px;
-    }
-    iframe {
-      border: none;
-    }
-    #prediction-box {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: rgba(0, 51, 102, 0.9);
-      color: white;
-      padding: 12px 18px;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 500;
-      line-height: 1.4em;
-      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
-    }
-    section {
-      text-align: center;
-      margin-top: 40px;
-      padding: 20px;
-    }
-    .symbol-selector {
-      margin-top: 10px;
-    }
-    select {
-      padding: 8px;
-      font-size: 1em;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      outline: none;
-    }
+    body {background:#f2f5fa;font-family:Poppins,sans-serif;margin:0;color:#003366;}
+    header {background:#003366;color:white;text-align:center;padding:20px;font-size:1.4em;}
+    nav {display:flex;justify-content:center;gap:20px;background:#eaf0f9;padding:10px;}
+    nav button {background:#003366;color:white;border:none;padding:8px 16px;
+      border-radius:6px;cursor:pointer;transition:0.3s;}
+    nav button:hover {background:#0055aa;}
+    .active {background:#0077ff;}
+    .chart-wrapper {position:relative;width:100%;height:600px;border-radius:12px;overflow:hidden;margin-top:10px;}
+    iframe {border:none;}
+    #prediction-box {position:absolute;top:10px;right:10px;background:rgba(0,51,102,0.9);
+      color:white;padding:12px 18px;border-radius:8px;font-size:14px;box-shadow:0 4px 10px rgba(0,0,0,.3);}
+    section {text-align:center;margin-top:30px;padding:20px;}
+    .symbol-selector{text-align:center;margin:15px;}
+    select{padding:8px;font-size:1em;border-radius:6px;}
+    #dashboard{display:none;padding:20px;text-align:center;}
+    table{margin:0 auto;border-collapse:collapse;width:80%;background:white;border-radius:8px;overflow:hidden;}
+    th,td{border:1px solid #ccc;padding:8px 10px;}
+    th{background:#003366;color:white;}
+    .gauge{margin:20px auto;width:200px;height:200px;border-radius:50%;background:conic-gradient(#0077ff 0deg,#eaeaea 0deg);
+      display:flex;align-items:center;justify-content:center;font-size:1.5em;font-weight:600;color:#003366;}
   </style>
 </head>
 <body>
   <header>🎯 School of Entries — Live AI Market Predictions</header>
 
-  <div class="symbol-selector" style="text-align:center;margin-top:20px;">
-    <label for="symbol">Select Market:</label>
-    <select id="symbol" onchange="updateChart()">
-      <option value="V75">V75 Index</option>
-      <option value="V100">V100 Index</option>
-      <option value="Boom1000">Boom 1000</option>
-      <option value="Crash1000">Crash 1000</option>
-      <option value="Crash500">Crash 500</option>
-      <option value="Boom500">Boom 500</option>
-    </select>
+  <nav>
+    <button id="liveTab" class="active" onclick="showTab('live')">Live Predictions</button>
+    <button id="dashTab" onclick="showTab('dashboard')">Performance Dashboard</button>
+  </nav>
+
+  <!-- LIVE TAB -->
+  <div id="live">
+    <div class="symbol-selector">
+      <label for="symbol">Select Market:</label>
+      <select id="symbol" onchange="updateChart()">
+        <option value="V75">V75 Index</option>
+        <option value="V100">V100 Index</option>
+        <option value="Boom1000">Boom 1000</option>
+        <option value="Crash1000">Crash 1000</option>
+      </select>
+    </div>
+
+    <div class="chart-wrapper">
+      <iframe id="derivChart" src="https://charts.deriv.com/deriv?symbol=V75" width="100%" height="600"></iframe>
+      <div id="prediction-box">Connecting to AI...</div>
+    </div>
+
+    <section>
+      <h2>School of Entries</h2>
+      <p>Founded by <strong>Sibusiso Kubyana</strong></p>
+      <p>Empowering traders through AI-driven market structure insight.</p>
+    </section>
   </div>
 
-  <div class="chart-wrapper">
-    <iframe id="derivChart" src="https://charts.deriv.com/deriv?symbol=V75" width="100%" height="600"></iframe>
-    <div id="prediction-box">Connecting to AI...</div>
+  <!-- DASHBOARD TAB -->
+  <div id="dashboard">
+    <h2>Performance Dashboard</h2>
+    <div id="gauge" class="gauge">0%</div>
+    <table id="signalsTable">
+      <thead><tr><th>Symbol</th><th>Bias</th><th>Confidence</th><th>Time</th></tr></thead>
+      <tbody></tbody>
+    </table>
   </div>
-
-  <section>
-    <h1>School of Entries</h1>
-    <p>Founded by <strong>Sibusiso Kubyana</strong></p>
-    <p>Empowering traders through AI-driven smart structure and market flow prediction.</p>
-    <p><strong>Powered by School of Entries AI Engine</strong></p>
-  </section>
 
   <script>
-    const backendURL = "https://ai-trading-backend-bdxb.onrender.com"; // replace if your backend link differs
+    const backendURL = "https://ai-trading-backend-bdxb.onrender.com"; // your render link
+    const supabase = window.supabase.createClient(
+      window.NEXT_PUBLIC_SUPABASE_URL || "https://YOUR-PROJECT.supabase.co",
+      window.NEXT_PUBLIC_SUPABASE_ANON_KEY || "YOUR-ANON-KEY"
+    );
 
-    async function getPrediction(symbol = "V75") {
-      try {
-        const res = await fetch(`${backendURL}/predict?symbol=${symbol}`);
-        const data = await res.json();
-        if (data.error) {
-          document.getElementById("prediction-box").innerHTML = "⚠️ " + data.error;
-          return;
-        }
-        document.getElementById("prediction-box").innerHTML = `
+    async function logSignal(symbol,bias,confidence){
+      try{
+        await supabase.from("signals").insert([{symbol,bias,confidence}]);
+      }catch(e){console.log("Log error",e);}
+    }
+
+    async function getPrediction(symbol="V75"){
+      try{
+        const res=await fetch(`${backendURL}/predict?symbol=${symbol}`);
+        const data=await res.json();
+        if(data.error){document.getElementById("prediction-box").innerHTML="⚠️ "+data.error;return;}
+        document.getElementById("prediction-box").innerHTML=`
           <b>${data.symbol}</b><br>
           Bias: ${data.bias}<br>
-          Confidence: ${(data.confidence * 100).toFixed(0)}%<br>
+          Confidence: ${(data.confidence*100).toFixed(0)}%<br>
           TP1: ${data.targets.TP1}<br>
-          TP2: ${data.targets.TP2}
-        `;
-      } catch (err) {
-        document.getElementById("prediction-box").innerHTML = "❌ Connection error (backend offline)";
+          TP2: ${data.targets.TP2}`;
+        await logSignal(data.symbol,data.bias,data.confidence);
+      }catch(err){
+        document.getElementById("prediction-box").innerHTML="❌ Connection error";
       }
     }
 
-    function updateChart() {
-      const symbol = document.getElementById("symbol").value;
-      document.getElementById("derivChart").src = `https://charts.deriv.com/deriv?symbol=${symbol}`;
+    function updateChart(){
+      const symbol=document.getElementById("symbol").value;
+      document.getElementById("derivChart").src=`https://charts.deriv.com/deriv?symbol=${symbol}`;
       getPrediction(symbol);
     }
 
-    setInterval(() => {
-      const symbol = document.getElementById("symbol").value;
+    setInterval(()=>{
+      const symbol=document.getElementById("symbol").value;
       getPrediction(symbol);
-    }, 10000);
+    },15000);
 
-    // Initial load
+    function showTab(tab){
+      document.getElementById("live").style.display=tab==="live"?"block":"none";
+      document.getElementById("dashboard").style.display=tab==="dashboard"?"block":"none";
+      document.getElementById("liveTab").classList.toggle("active",tab==="live");
+      document.getElementById("dashTab").classList.toggle("active",tab==="dashboard");
+      if(tab==="dashboard")loadDashboard();
+    }
+
+    async function loadDashboard(){
+      const {data,error}=await supabase.from("signals").select("*").order("created_at",{ascending:false}).limit(10);
+      const tbody=document.querySelector("#signalsTable tbody");
+      tbody.innerHTML="";
+      if(data){
+        data.forEach(s=>{
+          const tr=document.createElement("tr");
+          tr.innerHTML=`<td>${s.symbol}</td><td>${s.bias}</td>
+                        <td>${(s.confidence*100).toFixed(0)}%</td><td>${new Date(s.created_at).toLocaleTimeString()}</td>`;
+          tbody.appendChild(tr);
+        });
+        const avgConf=(data.reduce((a,b)=>a+b.confidence,0)/data.length)*100;
+        document.getElementById("gauge").style.background=
+          `conic-gradient(#0077ff 0 ${avgConf*3.6}deg,#eaeaea ${avgConf*3.6}deg 360deg)`;
+        document.getElementById("gauge").textContent=`${avgConf.toFixed(0)}%`;
+      }
+    }
+
     getPrediction("V75");
   </script>
 </body>
 </html>
+
+
