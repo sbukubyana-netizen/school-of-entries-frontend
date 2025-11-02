@@ -1,0 +1,1 @@
+# school-of-entries-frontend
